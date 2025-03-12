@@ -124,7 +124,6 @@ def extract_pdf_content(blob):
             })
             pixs.append(str(imgid.inserted_id))
         pages.append(pixs)
-        print(pages)
 
     doc.close()
     pdfid = collection_pdf.insert_one({
@@ -164,7 +163,6 @@ async def fetch_img(img_id: str):
     """處理 PDF 檔案並返回結果"""
     try:
         document = collection_img.find_one(ObjectId(img_id))
-        print(document)
         if document:
             blob_data = document['data']
             return Response(
