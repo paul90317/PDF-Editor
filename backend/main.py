@@ -33,12 +33,10 @@ db = client[mongo_db_name]
 collection_img = db['img']
 collection_pdf = db['pdf']
 
-app = FastAPI()
+collection_img.create_index([("createdAt", pymongo.DESCENDING)], expireAfterSeconds=60)
+collection_pdf.create_index([("createdAt", pymongo.DESCENDING)], expireAfterSeconds=60)
 
-# 儲存上傳的 PDF 檔案
-UPLOAD_FOLDER = "uploads"
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+app = FastAPI()
 
 def draw2shape(path, shape: fitz.Shape):
     """將路徑繪製到 shape 上"""
@@ -94,6 +92,11 @@ def modify_pdf_content(pdfid, selecteds: list[list[bool]]):
 
 def extract_pdf_content(blob):
     """提取 PDF 檔案中的文字、圖片和向量圖形"""
+    pdfid = collection_pdf.insert_one({
+        'data': blob,
+        'createdAt': datetime.datetime.now(datetime.timezone.utc)
+    })
+
     doc = fitz.open(stream=blob, filetype='pdf')
     pages = []
     for page in doc:
@@ -106,9 +109,7 @@ def extract_pdf_content(blob):
         bytes = pix.tobytes("png")
         imgid : InsertOneResult = collection_img.insert_one({
             'data': bytes,
-            'expireAt': datetime.datetime.utcnow() + datetime.timedelta(
-                seconds=60 # seconds
-            )    
+            'createdAt': datetime.datetime.now(datetime.timezone.utc)
         })
         pixs.append(str(imgid.inserted_id))
 
@@ -118,20 +119,12 @@ def extract_pdf_content(blob):
             bytes = pix.tobytes("png")
             imgid : InsertOneResult = collection_img.insert_one({
                 'data': bytes,
-                'expireAt': datetime.datetime.utcnow() + datetime.timedelta(
-                    seconds=60 # seconds
-                )    
+                'createdAt': datetime.datetime.now(datetime.timezone.utc)
             })
             pixs.append(str(imgid.inserted_id))
         pages.append(pixs)
 
     doc.close()
-    pdfid = collection_pdf.insert_one({
-        'data': blob,
-        'expireAt': datetime.datetime.utcnow() + datetime.timedelta(
-            seconds=60 # seconds
-        )
-    })
     return str(pdfid.inserted_id), pages
 
 @app.post("/upload")
