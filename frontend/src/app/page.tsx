@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import PdfDisplay from '@/comp/PdfDisplay';
 import PdfUpload from '@/comp/PdfUpload';
 
-export default function () {
+export default function Home() {
   const [thumbnails, setThumbnails] = useState<string[][]>([]);
   const [id, setId] = useState<string>('');
 

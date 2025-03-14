@@ -7,14 +7,9 @@ import pymongo
 from pymongo.results import InsertOneResult
 import datetime
 import io
-from dotenv import load_dotenv
 from bson.objectid import ObjectId
 # uvicorn main:app --reload --port 3000
 
-# 載入 .env 檔案
-load_dotenv()
-
-# 從環境變數讀取 MongoDB 設定
 mongo_host = os.getenv('MONGO_HOST')
 mongo_port = int(os.getenv('MONGO_PORT'))
 mongo_db_name = os.getenv('MONGO_DB_NAME')
